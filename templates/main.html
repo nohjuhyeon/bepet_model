@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forms</title>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Customer CSS commons.css -->
+</head>
+
+<body>
+    <div class="row">
+        
+
+            <div class="col-3"></div>
+            <div class="col-md-6">
+                <h2>내 애완동물 진단하기</h1>
+                <div class="h-100 p-5 bg-body-tertiary border rounded-3">
+                    <form>
+                        <div class="row">
+                            <br>
+                            <br>
+                            <div>
+                                <div class="mb-4 d-flex justify-content-center">
+                                    <img id="selectedImage" src="images\dog.jpg" alt="example placeholder"
+                                        style="width: 500px;" />
+                                </div>
+                                <div class="row">
+                                    <div class="col-3"></div>
+                                    <div class='col-6'>
+                                        <div class="d-flex justify-content-between">
+                                            <div class="col-4 btn btn-primary btn-rounded">
+                                                <label class="form-label text-white m-1" for="customFile1">첨부하기</label>
+                                                <input type="file" class="form-control d-none" id="customFile1"
+                                                    name="user_img"
+                                                    onchange="displaySelectedImage(event, 'selectedImage')" />
+                                            </div>
+                                            <button class="col-4 btn btn-primary" formaction="/result"
+                                                formmethod="post">검사하기</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            <div class="col-3"></div>
+    </div>
+</body>
+<script>
+    function displaySelectedImage(event, elementId) {
+        const selectedImage = document.getElementById(elementId);
+        const fileInput = event.target;
+
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                selectedImage.src = e.target.result;
+            };
+
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+    }
+</script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</html>
