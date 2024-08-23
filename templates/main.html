@@ -12,47 +12,64 @@
 
 <body>
     <div class="row">
-        
+        <div class="col-3"></div>
+        <div class="card col-md-6 p-0 mt-5">
+            <div class="card-header pt-4 pb-4 pl-2 py-3 alert alert-dark mb-0">
+                <h2 class="mb-0"><strong>내 애완동물 진단하기</strong></h2>
+            </div>
+            <div class="card-body h-100 p-5 bg-body-tertiary border rounded-3">
+                <form id="uploadForm" method="POST" action="/result" enctype="multipart/form-data" onsubmit="return validateForm()">
+                    <div class="row">
+                        <br>
+                        <br>
+                        <div>
+                            <h2 class="text-center">강아지 안구 사진을 업로드해주세요.</h2>
+                            <br>
+                            <div class="mb-4 d-flex justify-content-center">
+                                <img id="selectedImage" src="images/dog2.jpg" alt="example placeholder" style="width: 500px;" />
+                            </div>
 
-            <div class="col-3"></div>
-            <div class="col-md-6">
-                <h2>내 애완동물 진단하기</h1>
-                <div class="h-100 p-5 bg-body-tertiary border rounded-3">
-                    <form>
-                        <div class="row">
-                            <br>
-                            <br>
-                            <div>
-                                <div class="mb-4 d-flex justify-content-center">
-                                    <img id="selectedImage" src="images\dog.jpg" alt="example placeholder"
-                                        style="width: 500px;" />
-                                </div>
-                                <div class="row">
-                                    <div class="col-3"></div>
-                                    <div class='col-6'>
-                                        <div class="d-flex justify-content-between">
-                                            <div class="col-4 btn btn-primary btn-rounded">
-                                                <label class="form-label text-white m-1" for="customFile1">첨부하기</label>
-                                                <input type="file" class="form-control d-none" id="customFile1"
-                                                    name="user_img"
-                                                    onchange="displaySelectedImage(event, 'selectedImage')" />
-                                            </div>
-                                            <button class="col-4 btn btn-primary" formaction="/result"
-                                                formmethod="post">검사하기</button>
+                            <div class="row">
+                                <div class="col-3"></div>
+                                <div class='col-6'>
+                                    <div class="d-flex justify-content-between">
+                                        <div class="col-4 btn btn-primary btn-rounded">
+                                            <label class="form-label text-white m-1" for="customFile1">첨부하기</label>
+                                            <input type="file" class="form-control d-none" id="customFile1" name="user_img" onchange="displaySelectedImage(event, 'selectedImage')" />
                                         </div>
+                                        <button class="col-4 btn btn-primary" type="submit">검사하기</button>
                                     </div>
-                                    <div class="col-3"></div>
                                 </div>
+                                <div class="col-3"></div>
                             </div>
                         </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-3"></div>
+    </div>
 
-                    </form>
+    <!-- 에러 메세지 팝업 창 -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">경고</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="errorMessage">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
                 </div>
             </div>
-            <div class="col-3"></div>
+        </div>
     </div>
 </body>
+
 <script>
+    // 첨부된 이미지 표시
     function displaySelectedImage(event, elementId) {
         const selectedImage = document.getElementById(elementId);
         const fileInput = event.target;
@@ -66,6 +83,33 @@
 
             reader.readAsDataURL(fileInput.files[0]);
         }
+    }
+    // 에러 메세지 표시
+    function validateForm() {
+        const fileInput = document.getElementById('customFile1');
+        const file = fileInput.files[0];
+        const allowedExtensions = ['jpg', 'jpeg', 'png'];
+        const errorMessage = document.getElementById('errorMessage');
+        const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+
+        // 이전 에러 메세지 초기화 
+        errorMessage.textContent = '';
+
+        // 첨부된 파일이 없을 경우
+        if (!file) {
+            errorMessage.textContent = '파일을 첨부해주세요.';
+            errorModal.show(); 
+            return false; 
+        }
+        // 지원되지 않는 파일 형식일 경우 
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        if (!allowedExtensions.includes(fileExtension)) {
+            errorMessage.textContent = '지원되지 않는 파일 형식입니다. jpg, jpeg, png 파일만 업로드 가능합니다.';
+            errorModal.show(); 
+            return false; 
+        }
+
+        return true; 
     }
 </script>
 
