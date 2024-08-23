@@ -6,7 +6,6 @@ import shutil
 import os
 import matplotlib.pyplot as plt
 from PIL import Image
-import numpy as np
 from ultralytics import YOLO
 
 app = FastAPI()
@@ -29,7 +28,7 @@ templates = Jinja2Templates(directory="templates/")
 
 # YOLO 모델 로드
 try:
-    yolo_model = YOLO('/models/yolov8n.pt')
+    yolo_model = YOLO('resources/models/yolov8n.pt')
     print('YOLO 모델을 성공적으로 로드했습니다.')
 except:
     print('YOLO 모델을 성공적으로 로드하지 못했습니다.')
@@ -54,17 +53,10 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
     results = yolo_model.predict(img)
 
     # 결과 이미지에 박스 그리기 및 저장
-    for result in enumerate(results):
-        orig_img = result.orig_img  # 원본 이미지
+    for result in results:
+        orig_img = result[1].orig_img  # 원본 이미지
         boxes = result.boxes  # 탐지된 객체의 박스 정보
         names = result.names  # 클래스 이름들
-
-        if isinstance(orig_img, np.ndarray):
-            if orig_img.max() <= 1.0:
-                orig_img = (orig_img * 255).astype(np.uint8)
-            if orig_img.shape[0] == 3:
-                orig_img = np.transpose(orig_img, (1, 2, 0))
-            orig_img = Image.fromarray(orig_img)
 
         plt.figure(figsize=(10, 10))
         plt.imshow(orig_img)
@@ -72,18 +64,19 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
 
         ax = plt.gca()
         ax.set_axis_off()
-        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        plt.margins(0, 0)
-        plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        # plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        # plt.margins(0, 0)
+        # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        # plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
         for box in boxes:
             x1, y1, x2, y2 = box.xyxy[0].tolist()
             class_id = int(box.cls[0])
             class_name = names[class_id]
-            rect = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='red', linewidth=2)
-            ax.add_patch(rect)
+            box_line = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='red', linewidth=2)
+            ax.add_patch(box_line)
             plt.text(x1, y1, class_name, color='red', fontsize=12, bbox=dict(facecolor='yellow', alpha=0.5))
+
 
         output_filename = f"resources/outputs/output_{user_img.filename}.png"
         plt.savefig(output_filename, bbox_inches='tight', pad_inches=0)
