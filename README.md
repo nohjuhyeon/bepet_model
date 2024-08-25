@@ -1,10 +1,10 @@
 # bepet
 
-# install list
-- python-multipart
+# install module list
+- fastapi
 - jinja2
 - uvicorn
-- fastapi
 - matplotlib
 - torch
 - ultralytics
+- python-multipart
