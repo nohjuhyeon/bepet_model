@@ -52,23 +52,25 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
     img = Image.open(file_location)
     results = yolo_model.predict(img)
 
-    # 결과 이미지에 박스 그리기 및 저장
+    # 결과 이미지에 박스 그리기
     for result in results:
-        orig_img = result[1].orig_img  # 원본 이미지
+        # 박스 탐지가 안될 경우 원본 이미지로 result.orgi_img 사용
+        if len(result)==0:
+            orig_img = result.orig_img
+        # 박스 탐시가 된 경우 원본 이미지로 result[1].orig_img 사용
+        else:
+            orig_img = result[1].orig_img  
         boxes = result.boxes  # 탐지된 객체의 박스 정보
         names = result.names  # 클래스 이름들
-
+        
+        # 원본 이미지 시각화
         plt.figure(figsize=(10, 10))
         plt.imshow(orig_img)
         plt.axis('off')
 
         ax = plt.gca()
         ax.set_axis_off()
-        # plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        # plt.margins(0, 0)
-        # plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        # plt.gca().yaxis.set_major_locator(plt.NullLocator())
-
+        # 이미지에 박스 및 클래스 이름들 표시
         for box in boxes:
             x1, y1, x2, y2 = box.xyxy[0].tolist()
             class_id = int(box.cls[0])
@@ -77,12 +79,12 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
             ax.add_patch(box_line)
             plt.text(x1, y1, class_name, color='red', fontsize=12, bbox=dict(facecolor='yellow', alpha=0.5))
 
-
+        # resources/outputs/ 에 분석 결과 이미지 저장
         output_filename = f"resources/outputs/output_{user_img.filename}.png"
         plt.savefig(output_filename, bbox_inches='tight', pad_inches=0)
         plt.close()
 
-    # 분석 결과(추후 변경 가능)
+    # 분석 결과(추후 변경 예정)
     output_path = f'/outputs/output_{user_img.filename}.png'
     disease_name = '백내장'
     disease_cause = '백내장 원인에는 품종 유전, 당뇨병, 의상, 포도상구균, 진행성 망막위축증, 망막박리 등이 있습니다.'
