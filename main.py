@@ -29,6 +29,7 @@ templates = Jinja2Templates(directory="templates/")
 # YOLO 모델 로드
 try:
     yolo_model = YOLO('resources/models/yolov8n.pt')
+    yolo_model.to('cpu') 
     print('YOLO 모델을 성공적으로 로드했습니다.')
 except:
     print('YOLO 모델을 성공적으로 로드하지 못했습니다.')
