@@ -35,12 +35,10 @@ try:
 except:
     print('YOLO 모델을 성공적으로 로드하지 못했습니다.')
 
-# 폰트 설정
-# 맑은 고딕 폰트 경로
+# 폰트 설정(이미지 내의 한글이 깨질 경우 /resources/fonts 폴더 안에 있는 NanumGothic.ttf 파일을 C:/Windows/Fonts/ 안에 추가)
 font_path = 'C:/Windows/Fonts/malgun.ttf'
 font_properties = fm.FontProperties(fname=font_path)
 
-# 폰트 설정
 plt.rcParams['font.family'] = 'Malgun Gothic'
 
 @app.get("/")                     
@@ -49,6 +47,7 @@ async def main_get(request: Request):
 
 @app.post("/result")                     
 async def result_post(request: Request, user_img: UploadFile = File(...)):
+    
     # 업로드된 파일을 저장할 경로 설정
     upload_dir = "resources/inputs"
     os.makedirs(upload_dir, exist_ok=True)
