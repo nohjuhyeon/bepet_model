@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 from PIL import Image
 from ultralytics import YOLO
+import matplotlib.font_manager as fm
 
 app = FastAPI()
 
@@ -28,14 +29,22 @@ templates = Jinja2Templates(directory="templates/")
 
 # YOLO 모델 로드
 try:
-    yolo_model = YOLO('resources/models/yolov8n.pt')
+    yolo_model = YOLO('resources/models/best.pt')
     yolo_model.to('cpu') 
     print('YOLO 모델을 성공적으로 로드했습니다.')
 except:
     print('YOLO 모델을 성공적으로 로드하지 못했습니다.')
 
+# 폰트 설정
+# 맑은 고딕 폰트 경로
+font_path = 'C:/Windows/Fonts/malgun.ttf'
+font_properties = fm.FontProperties(fname=font_path)
+
+# 폰트 설정
+plt.rcParams['font.family'] = 'Malgun Gothic'
+
 @app.get("/")                     
-async def main_get(request:Request):
+async def main_get(request: Request):
     return templates.TemplateResponse("main.html", {'request': request})
 
 @app.post("/result")                     
@@ -52,15 +61,15 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
     # YOLO 모델을 사용한 객체 탐지 수행
     img = Image.open(file_location)
     results = yolo_model.predict(img)
-
+    class_name_list = [] 
     # 결과 이미지에 박스 그리기
     for result in results:
-        # 박스 탐지가 안될 경우 원본 이미지로 result.orgi_img 사용
-        if len(result)==0:
+        # 박스 탐지가 안될 경우 원본 이미지로 result.orig_img 사용
+        if len(result) == 0:
             orig_img = result.orig_img
-        # 박스 탐시가 된 경우 원본 이미지로 result[1].orig_img 사용
+        # 박스 탐지가 된 경우 원본 이미지로 result[1].orig_img 사용
         else:
-            orig_img = result[1].orig_img  
+            orig_img = result[0].orig_img  
         boxes = result.boxes  # 탐지된 객체의 박스 정보
         names = result.names  # 클래스 이름들
         
@@ -76,6 +85,7 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
             x1, y1, x2, y2 = box.xyxy[0].tolist()
             class_id = int(box.cls[0])
             class_name = names[class_id]
+            class_name_list.append(class_name)
             box_line = plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='red', linewidth=2)
             ax.add_patch(box_line)
             plt.text(x1, y1, class_name, color='red', fontsize=12, bbox=dict(facecolor='yellow', alpha=0.5))
@@ -87,10 +97,10 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
 
     # 분석 결과(추후 변경 예정)
     output_path = f'/outputs/output_{user_img.filename}.png'
-    disease_name = '백내장'
-    disease_cause = '백내장 원인에는 품종 유전, 당뇨병, 의상, 포도상구균, 진행성 망막위축증, 망막박리 등이 있습니다.'
-    disease_symptom = '백내장 증상에는 동공이 흐릿하거나 밤눈이 어둡거나 눈 색깔의 변화 등이 있습니다.'
-    disease_treatment = '치료법은 약물치료, 수술 등이 있습니다.'
+    disease_name = ', '.join(class_name_list)
+    disease_cause = '원인에는'
+    disease_symptom = '증상에는'
+    disease_treatment = '치료법은'
 
     # 결과 페이지로 전달
     return templates.TemplateResponse("result.html", {
