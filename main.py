@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import shutil
 import os
+import json 
 import matplotlib.pyplot as plt
 from PIL import Image
 from ultralytics import YOLO
@@ -24,6 +25,7 @@ app.mount("/images", StaticFiles(directory="resources/images/"), name="static_im
 app.mount("/inputs", StaticFiles(directory="resources/inputs/"), name="input_images")
 app.mount("/outputs", StaticFiles(directory="resources/outputs/"), name="output_images")
 app.mount("/models", StaticFiles(directory="resources/models/"), name="models")
+app.mount("/disease", StaticFiles(directory="resources/disease/"), name="disease")
 
 templates = Jinja2Templates(directory="templates/")    
 
@@ -48,6 +50,11 @@ async def main_get(request: Request):
 @app.post("/result")                     
 async def result_post(request: Request, user_img: UploadFile = File(...)):
     
+    # 질환에 대한 설명 json 파일 가져오기 
+    with open('resources/disease/disease_list.json', 'r', encoding='utf-8') as f:
+        disease_info = json.load(f)
+
+    
     # 업로드된 파일을 저장할 경로 설정
     upload_dir = "resources/inputs"
     os.makedirs(upload_dir, exist_ok=True)
@@ -56,6 +63,8 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
     # 파일 저장
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(user_img.file, file_object)
+    
+    
     
     # YOLO 모델을 사용한 객체 탐지 수행
     img = Image.open(file_location)
@@ -93,7 +102,16 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
         output_filename = f"resources/outputs/output_{user_img.filename}.png"
         plt.savefig(output_filename, bbox_inches='tight', pad_inches=0)
         plt.close()
-
+    
+    class_name_list = list(set(class_name_list))
+    disease_list = []
+    for i in class_name_list:
+        dict_disease = {'disease_name':i,
+        'cause': '원인 : ' + disease_info[i][0],
+        'symptom':'증상 : ' + disease_info[i][1],
+        'treatment':'치료 : ' + disease_info[i][2]
+        }
+        disease_list.append(dict_disease)
     # 분석 결과(추후 변경 예정)
     output_path = f'/outputs/output_{user_img.filename}.png'
     disease_name = ', '.join(class_name_list)
@@ -109,5 +127,6 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
         'disease_name': disease_name,
         'disease_cause': disease_cause,
         'disease_symptom': disease_symptom,
-        'disease_treatment': disease_treatment
+        'disease_treatment': disease_treatment,
+        'disease_list':disease_list
     })
