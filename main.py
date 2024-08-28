@@ -107,9 +107,9 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
     disease_list = []
     for i in class_name_list:
         dict_disease = {'disease_name':i,
-        'cause': '원인 : ' + disease_info[i][0],
-        'symptom':'증상 : ' + disease_info[i][1],
-        'treatment':'치료 : ' + disease_info[i][2]
+        'cause': disease_info[i][0],
+        'symptom':disease_info[i][1],
+        'treatment':disease_info[i][2]
         }
         disease_list.append(dict_disease)
     # 분석 결과(추후 변경 예정)
@@ -124,9 +124,5 @@ async def result_post(request: Request, user_img: UploadFile = File(...)):
         'request': request,
         'input_path': f"/inputs/{user_img.filename}",
         'output_path': output_path,
-        'disease_name': disease_name,
-        'disease_cause': disease_cause,
-        'disease_symptom': disease_symptom,
-        'disease_treatment': disease_treatment,
         'disease_list':disease_list
     })
